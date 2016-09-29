@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html ng-app="listaTelefonica">
+<head>
+    <meta charset="utf-8">
+    <title>Lista Telefonica</title>
+    <script src="lib/angular-1.5.8/angular.js"></script>
+    <link rel="stylesheet" type="text/css" href="lib/bootstrap-3.3.7/bootstrap.css">
+    <style>
+        .jumbotron {
+            width: 400px;
+            text-align: center;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+        }
+        .table {
+            margin-top: 20px;
+        }
+        .form-control {
+            margin-bottom: 5px;
+
+        }
+        .selecionado {
+            background-color: yellow;
+        }
+        .selecionado {
+            font-weight: bold;
+        }
+    </style>
+
+    <script>
+
+        angular.module('listaTelefonica', []);
+        angular.module('listaTelefonica').controller('listaTelefonicaCtrl',function($scope){
+            $scope.app = 'Lista Telefonica';
+            $scope.contatos = [
+                {nome: "Pedro", telefone:"35345345" , cor: "blue"},
+                {nome: "Ana"   , telefone:"345345"    , cor: "yellow"},
+                {nome: "Maria", telefone:"4545435"  , cor: "red"},
+            ];
+            $scope.operadoras = [
+                {nome:"Oi", codigo: 14, categoria:'Celular'},
+                {nome:"Vivo", codigo: 15, categoria:'Celular'},
+                {nome:"TIM", codigo: 41, categoria:'Celular'},
+                {nome:"GVT", codigo: 25, categoria:'Fixo'},
+                {nome:"Embratel", codigo: 21, categoria:'Fixo'}
+            ];
+
+            $scope.adicionarContato = function (contato) {
+                //copy para que não fique alterando
+                $scope.contatos.push(angular.copy(contato));
+                delete $scope.contato;
+                $scope.contatoForm.$setPristine();
+            };
+
+            $scope.apagarContato = function (contatos) {
+                // filtra apenas contatos que NÃO estao selecionados
+                $scope.contatos = contatos.filter(function(contato){
+                    if (!contato.selecionado) return contato;
+                });
+            };
+
+            $scope.isContatoSelecionado = function (contatos) {
+                // se pelo menos um contatos esta selecionado retorna TRUE
+                return  contatos.some(function(contato){
+                    return contato.selecionado;
+                });
+            };
+
+
+
+        });
+
+    </script>
+</head>
+<body ng-controller="listaTelefonicaCtrl">
+    <div class="jumbotron">
+        <!-- <h3 ng-bind="app"></h3> -->
+        <!-- ou -->
+        <h4>{{app}}</h4>
+
+        <!-- ou -->
+        <!-- <h4>{{app + '  (Juliano)'}}</h4> -->
+
+        <table class="table " ng-show="contatos.length > 0"> <!-- table-striped -->
+            <thead>
+            <tr>
+                <th></th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Operadora</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr ng-class="{'selecionado negrito':  contato.selecionado}" ng-repeat="contato in contatos">
+                    <td><input type="checkbox" ng-model="contato.selecionado" /></td>
+                    <td>{{contato.nome}}</td>
+                    <td>{{contato.telefone}}</td>
+                    <td>{{contato.operadora.nome}}</td>
+                    <td><div style="width: 20px; height: 20px;" ng-style="{'background-color':contato.cor}"></div></td>
+                </tr>
+                <!-- ou -->
+
+                <!-- <tr ng-repeat="contato in contatos">
+                    <td ng-repeat="(key,value) in contato">
+                    {{key + '  -  ' + value}}
+                    </td>
+                </tr> -->
+            </tbody>
+        </table>
+        <hr>
+
+        <form name="contatoForm"> <!-- é criado automaticamente um variavel no $scope -->
+            <input class="form-control" type="text" name="nome"     placeholder="Nome"     ng-model="contato.nome"     ng-required="true" ng-minlength="10">
+            <input class="form-control" type="text" name="telefone" placeholder="Telefone" ng-model="contato.telefone" ng-required="true">
+            <select class="form-control"  ng-model="contato.operadora" ng-options="operadora.nome group by operadora.categoria for operadora in operadoras">
+                <option value="">Selecione uma operadora</option>
+            </select>
+        </form>
+
+        <div ng-show="contatoForm.nome.$error.required && contatoForm.nome.$dirty" class="alert alert-danger">
+            Preencha o nome do contato
+        </div>
+
+        <div ng-show="contatoForm.nome.$error.minlength" class="alert alert-danger">
+            Preencha nome do contato deve ter no mínimo 10 caracteres.
+        </div>
+
+        <div ng-show="contatoForm.telefone.$invalid && contatoForm.telefone.$dirty" class="alert alert-danger">
+            Preencha o telefone do contato
+        </div>
+
+
+        <!-- <br>
+        {{contato}} -->
+        <br>
+        <button class="btn btn-primary btn-block" ng-disabled="contatoForm.$invalid" ng-click="adicionarContato(contato)">Add</button>
+        <!--
+
+            exemplo ng-disabled
+        <button class="btn btn-danger btn-block"  ng-disabled="!isContatoSelecionado(contatos)"     ng-click="apagarContato(contatos)">Remove</button>
+
+            exemplo ng-show e/ou ng-hide (elemento permanece no html)
+        <button class="btn btn-danger btn-block"  ng-show="isContatoSelecionado(contatos)"     ng-click="apagarContato(contatos)">Remove</button>
+
+            exemplo ng-if (interage com o DOM, elemento so é criado no html quando atende a expressão)
+        <button class="btn btn-danger btn-block"  ng-if="isContatoSelecionado(contatos)"     ng-click="apagarContato(contatos)">Remove</button>
+
+        -->
+        <button class="btn btn-danger btn-block"  ng-if="isContatoSelecionado(contatos)"     ng-click="apagarContato(contatos)">Remove</button>
+
+
+
+
+    </div>
+
+    <div ng-include="'footer.html'"></div>
+
+</body>
+</html>
