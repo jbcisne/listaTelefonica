@@ -41,29 +41,46 @@
 
     <script>
 
+    /*
+     * INICIALIZAR O SERVIÇO http.js do node
+     *
+     */
+
         angular.module('listaTelefonica', ["ngMessages"]);
 
-        angular.module('listaTelefonica').controller('listaTelefonicaCtrl',function($scope, $filter){
-            $scope.app = 'Lista Telefonica';
-            $scope.contatos = [
-                {nome: $filter('uppercase')("Pedro"), telefone:"3333-3333" , cor: "blue", data: new Date(), operadora:{nome:"Oi", codigo: 14, categoria:"Celular"}},
-                {nome: "Ana"   , telefone:"22222-2222"    , cor: "yellow", data: new Date(), operadora:{nome:"TIM", codigo: 41, categoria:"Celular"}},
-                {nome: "Maria", telefone:"1111-1111"  , cor: "red", data: new Date(), operadora:{nome:"GVT", codigo: 25, categoria:"Fixo"}},
-                {nome: "Sandra", telefone:"99999-9999"  , cor: "green", data: new Date(), operadora:{nome:"Embratel", codigo: 21, categoria:"Fixo"}},
-            ];
-            $scope.operadoras = [
-                {nome:"Oi", codigo: 14, categoria:'Celular', preco: 1},
-                {nome:"Vivo", codigo: 15, categoria:'Celular', preco: 3},
-                {nome:"TIM", codigo: 41, categoria:'Celular', preco: 2},
-                {nome:"GVT", codigo: 25, categoria:'Fixo', preco: 4},
-                {nome:"Embratel", codigo: 21, categoria:'Fixo', preco: 5}
-            ];
+        angular.module('listaTelefonica').controller('listaTelefonicaCtrl',function($scope, $http,  $filter){
+            $scope.app             = 'Lista Telefonica';
+            $scope.contatos     = [];
+            $scope.operadoras = [];
+
+            var carregarContatos = function () {
+                $http.get('http://localhost:3412/contatos')
+                        .success(function (data, status) {
+                            $scope.contatos = data;
+                        })
+                        .error(function (data, status) {
+                            $scope.message = "Aconteceu um problema: " + data;
+                        });
+            };
+
+            var carregarOperadoras = function () {
+                $http.get('http://localhost:3412/operadoras')
+                        .success(function (data, status) {
+                            $scope.operadoras = data;
+                        });
+            };
+
 
             $scope.adicionarContato = function (contato) {
                 //copy para que não fique alterando
-                $scope.contatos.push(angular.copy(contato));
-                delete $scope.contato;
-                $scope.contatoForm.$setPristine();
+                contato.data = new Date();
+
+                $http.post('http://localhost:3412/contatos', contato)
+                        .success(function (data) {
+                            delete $scope.contato;
+                            $scope.contatoForm.$setPristine();
+                            carregarContatos();
+                        });
             };
 
             $scope.apagarContato = function (contatos) {
@@ -85,7 +102,8 @@
                 $scope.direcaoDaOrdenacao = !$scope.direcaoDaOrdenacao;
             };
 
-
+            carregarContatos();
+            carregarOperadoras();
         });
 
     </script>
@@ -98,7 +116,7 @@
 
         <!-- ou -->
         <!-- <h4>{{app + '  (Juliano)'}}</h4> -->
-
+        {{message}}
         <input class="form-control" type="text" ng-model="criterioDeBusca" placeholder="O que você esta buscando?"> <!-- filter 'filter' -->
         <table class="table " ng-show="contatos.length > 0"> <!-- table-striped -->
             <thead>
